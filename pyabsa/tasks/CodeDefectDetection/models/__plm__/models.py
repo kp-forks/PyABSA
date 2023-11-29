@@ -1,9 +1,9 @@
+import logging
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from imblearn.over_sampling import SMOTE
-import numpy as np
-
 from transformers import (
     RobertaConfig,
     RobertaModel,
@@ -15,7 +15,6 @@ from transformers import (
     T5ForConditionalGeneration,
     T5Tokenizer,
 )
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +64,7 @@ def build_or_load_gen_model(args):
 
     if args.load_model_path is not None:
         logger.info("Reload model from {}".format(args.load_model_path))
-        model.load_state_dict(torch.load(args.load_model_path))
+        model.load_state_dict(torch.load(args.load_model_path), strict=False)
 
     return config, model, tokenizer
 
@@ -280,8 +279,8 @@ class DefectModel(nn.Module):
 
         logits1 = self.classifier1(vec)
         logits2 = self.classifier2(vec)
-        prob = nn.functional.softmax(logits1)
-        c_prob = nn.functional.softmax(logits2)
+        prob = nn.functional.softmax(logits1, dim=-1)
+        c_prob = nn.functional.softmax(logits2, dim=-1)
 
         if labels is not None:
             loss_fct1 = nn.CrossEntropyLoss()
